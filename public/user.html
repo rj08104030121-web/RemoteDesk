@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skone Remote Support — Share Your Screen</title>
+  <meta name="description" content="Share your screen securely with a Skone Remote Support admin for remote support." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="app-page">
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow-1"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/" class="nav-brand">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">Skone Remote Support</span>
+    </a>
+    <div class="nav-links">
+      <span class="nav-badge" id="connection-status-badge">⚫ Connecting...</span>
+    </div>
+  </nav>
+
+  <main class="app-main">
+    <!-- STEP 1: Not connected to server -->
+    <div class="panel glass-panel" id="panel-connecting">
+      <div class="panel-icon spin">🔄</div>
+      <h2>Connecting to Server...</h2>
+      <p class="panel-sub">Please wait while we establish a connection to the Skone Remote Support server.</p>
+    </div>
+
+    <!-- STEP 2: Connected, waiting to start agent -->
+    <div class="panel glass-panel hidden" id="panel-start">
+      <div class="panel-icon">🖥️</div>
+      <h2>Ready to Share</h2>
+      <p class="panel-sub">Click below to run the Node.js agent on your computer.<br />
+        Your screen will be captured and shared with the admin.</p>
+
+      <div class="info-box warning-box">
+        <span>⚠️</span>
+        <div>
+          <strong>Prerequisites</strong><br />
+          Make sure you have run <code>node agent.js</code> in the project folder before clicking Start.
+          The agent must be running to share your screen.
+        </div>
+      </div>
+
+      <div class="session-display hidden" id="session-display">
+        <div class="session-label">Your Session ID</div>
+        <div class="session-id-box">
+          <span id="session-id-text">------</span>
+          <button class="copy-btn" id="copy-session-btn" title="Copy Session ID">📋</button>
+        </div>
+        <p class="session-hint">Share this code with your admin. They will use it to connect.</p>
+      </div>
+
+      <button class="btn btn-primary btn-large" id="request-session-btn">
+        <span>📡</span> Generate Session ID
+      </button>
+    </div>
+
+    <!-- STEP 3: Session active, waiting for admin -->
+    <div class="panel glass-panel hidden" id="panel-waiting">
+      <div class="panel-icon pulse-icon">📡</div>
+      <h2>Waiting for Admin...</h2>
+      <p class="panel-sub">Your session is active. Share the ID below with your admin.</p>
+
+      <div class="session-display">
+        <div class="session-label">Session ID</div>
+        <div class="session-id-box">
+          <span id="session-id-waiting">------</span>
+          <button class="copy-btn" id="copy-waiting-btn" title="Copy Session ID">📋</button>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <div class="status-dot waiting"></div>
+        <span>Waiting for admin to connect</span>
+      </div>
+
+      <button class="btn btn-danger btn-outline" id="cancel-session-btn">
+        <span>✕</span> Cancel Session
+      </button>
+    </div>
+
+    <!-- STEP 4: Admin connected, session active -->
+    <div class="panel glass-panel hidden" id="panel-active">
+      <div class="panel-icon">✅</div>
+      <h2>Session Active</h2>
+      <p class="panel-sub">Admin is now connected and viewing your screen.</p>
+
+      <div class="info-box success-box">
+        <span>🔒</span>
+        <div>Admin has remote access to your computer.<br />You can disconnect at any time.</div>
+      </div>
+
+      <div class="session-display">
+        <div class="session-label">Active Session</div>
+        <div class="session-id-box">
+          <span id="session-id-active">------</span>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <div class="status-dot active"></div>
+        <span>Admin connected — screen is being shared</span>
+      </div>
+
+      <button class="btn btn-danger" id="disconnect-btn">
+        <span>🔌</span> Disconnect Admin
+      </button>
+    </div>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/user.js"></script>
+</body>
+</html>

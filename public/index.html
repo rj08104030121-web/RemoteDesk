@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skone Remote Support — Enter Connection Code</title>
+  <meta name="description" content="Enter the connection code provided by your support agent to start a secure remote support session." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* ── Page-specific overrides ── */
+    .connect-hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .connect-card {
+      background: rgba(15, 20, 40, 0.75);
+      border: 1px solid rgba(100, 180, 255, 0.18);
+      border-radius: 24px;
+      padding: 3rem 3.5rem;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+      animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-ring {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #00d4ff, #7c3aed);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 0 32px rgba(0, 212, 255, 0.35);
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 32px rgba(0, 212, 255, 0.35); }
+      50%       { box-shadow: 0 0 52px rgba(0, 212, 255, 0.6); }
+    }
+
+    .connect-card h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .connect-card p.sub {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Code input - split into 6 boxes */
+    .code-input-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-box {
+      width: 52px;
+      height: 64px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      caret-color: #00d4ff;
+    }
+
+    .code-box:focus {
+      border-color: #00d4ff;
+      background: rgba(0, 212, 255, 0.08);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.18);
+    }
+
+    .code-box.filled {
+      border-color: rgba(0, 212, 255, 0.5);
+    }
+
+    .code-box.error {
+      border-color: #f87171;
+      background: rgba(248, 113, 113, 0.08);
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .btn-connect {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #00d4ff, #7c3aed);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      box-shadow: 0 4px 24px rgba(0, 212, 255, 0.25);
+    }
+
+    .btn-connect:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(0, 212, 255, 0.35);
+    }
+
+    .btn-connect:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-connect.loading .btn-text { display: none; }
+    .btn-connect .spinner { display: none; }
+    .btn-connect.loading .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      color: #f87171;
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+      min-height: 1.2em;
+    }
+
+    /* Download success state */
+    .download-steps {
+      display: none;
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .download-steps.visible { display: block; }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+
+    .step.show { opacity: 1; transform: translateX(0); }
+    .step.done  { background: rgba(0,212,100,0.06); border-color: rgba(0,200,100,0.2); }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #00d4ff22, #7c3aed22);
+      border: 1px solid rgba(0,212,255,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #00d4ff;
+      flex-shrink: 0;
+    }
+
+    .step-num.done-icon { background: rgba(0,200,100,0.15); border-color: rgba(0,200,100,0.4); color: #4ade80; }
+
+    .step-text { font-size: 0.875rem; color: rgba(255,255,255,0.75); line-height: 1.5; }
+    .step-text strong { color: #fff; }
+
+    /* Admin link */
+    .admin-link {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .admin-link a {
+      color: rgba(0,212,255,0.6);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .admin-link a:hover { color: #00d4ff; }
+  </style>
+</head>
+<body class="landing-page">
+  <!-- Animated Background -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <main class="connect-hero">
+    <div class="connect-card">
+
+      <div class="logo-ring">⚡</div>
+      <h1>Skone Remote Support</h1>
+      <p class="sub">Enter the 6-character code your support agent gave you</p>
+
+      <!-- 6-box code input -->
+      <div class="code-input-row" id="code-boxes">
+        <input class="code-box" maxlength="1" id="box0" autocomplete="off" spellcheck="false" />
+        <input class="code-box" maxlength="1" id="box1" autocomplete="off" spellcheck="false" />
+        <input class="code-box" maxlength="1" id="box2" autocomplete="off" spellcheck="false" />
+        <input class="code-box" maxlength="1" id="box3" autocomplete="off" spellcheck="false" />
+        <input class="code-box" maxlength="1" id="box4" autocomplete="off" spellcheck="false" />
+        <input class="code-box" maxlength="1" id="box5" autocomplete="off" spellcheck="false" />
+      </div>
+
+      <button class="btn-connect" id="connect-btn" disabled>
+        <span class="spinner"></span>
+        <span class="btn-text">⬇️ &nbsp;Download &amp; Connect</span>
+      </button>
+
+      <div class="error-msg" id="error-msg"></div>
+
+      <!-- Step-by-step instructions shown after download -->
+      <div class="download-steps" id="download-steps">
+        <div class="step" id="step1">
+          <div class="step-num done-icon">✓</div>
+          <div class="step-text"><strong>File downloaded</strong><br />Check your Downloads folder for <code>SkoneAgent-XXXXXX.bat</code></div>
+        </div>
+        <div class="step" id="step2">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Run the file</strong><br />Double-click the downloaded file. Click <em>"More info → Run anyway"</em> if Windows SmartScreen appears.</div>
+        </div>
+        <div class="step" id="step3">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>Wait for connection</strong><br />A console window will open. Your support agent will connect automatically — you don't need to do anything else.</div>
+        </div>
+        <div class="step" id="step4">
+          <div class="step-num">4</div>
+          <div class="step-text"><strong>Session ends</strong><br />Close the console window at any time to end the remote session.</div>
+        </div>
+      </div>
+
+      <div class="admin-link">
+        Support agent? <a href="/admin.html" id="admin-link">Open Admin Panel →</a>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/js/connect.js"></script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skone Remote Support — Admin Panel</title>
+  <meta name="description" content="Skone Remote Support admin panel — view and control user screens remotely." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* Invite code panel */
+    .invite-panel {
+      background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.08));
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 14px;
+      padding: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .invite-panel h4 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 0.75rem;
+    }
+    .invite-code-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      color: #00d4ff;
+      text-align: center;
+      padding: 0.6rem 0;
+      text-shadow: 0 0 20px rgba(0,212,255,0.4);
+    }
+    .invite-code-display.empty {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.05em;
+    }
+    .invite-link-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(0,0,0,0.25);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      margin: 0.5rem 0 0.75rem;
+      min-height: 2rem;
+    }
+    .invite-link-text {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .copy-link-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: rgba(0,212,255,0.7);
+      font-size: 0.85rem;
+      padding: 0.1rem 0.2rem;
+      transition: color 0.2s;
+    }
+    .copy-link-btn:hover { color: #00d4ff; }
+    .invite-expire {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.3);
+      text-align: center;
+    }
+    .invite-expire.active { color: rgba(255,200,0,0.6); }
+    .waiting-badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(255,200,0,0.12);
+      color: rgba(255,200,0,0.8);
+      border: 1px solid rgba(255,200,0,0.2);
+      animation: pulse-badge 2s ease-in-out infinite;
+    }
+    @keyframes pulse-badge {
+      0%,100% { opacity: 1; } 50% { opacity: 0.5; }
+    }
+    .session-item-code {
+      font-size: 0.7rem;
+      color: rgba(0,212,255,0.6);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ===== Sidebar Tabs ===== */
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(0,0,0,0.2);
+      flex-shrink: 0;
+    }
+    .sidebar-tab {
+      flex: 1;
+      padding: 0.6rem 0.3rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.35);
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .sidebar-tab:hover { color: rgba(255,255,255,0.65); }
+    .sidebar-tab.active {
+      color: #00d4ff;
+      border-bottom-color: #00d4ff;
+      background: rgba(0,212,255,0.05);
+    }
+    .sidebar-panel { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 1rem; }
+    .sidebar-panel.active { display: flex; }
+
+    /* ===== Change Password ===== */
+    .cp-form {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .cp-form h4 {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 0.75rem;
+    }
+    .cp-msg { font-size: 0.72rem; margin-bottom: 0.5rem; min-height: 1rem; }
+    .cp-msg.ok { color: #10b981; }
+    .cp-msg.err { color: #ef4444; }
+
+    /* ===== Agent Management ===== */
+    .ag-form {
+      background: rgba(139,92,246,0.06);
+      border: 1px solid rgba(139,92,246,0.18);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .ag-form h4 {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(139,92,246,0.7);
+      margin-bottom: 0.75rem;
+    }
+    .ag-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      color: #f0f0ff;
+      font-family: inherit;
+      margin-bottom: 0.5rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .ag-input:focus { border-color: #8b5cf6; }
+    .ag-input::placeholder { color: rgba(255,255,255,0.25); }
+    .ag-msg { font-size: 0.72rem; margin-bottom: 0.5rem; min-height: 1rem; }
+    .ag-msg.ok { color: #10b981; }
+    .ag-msg.err { color: #ef4444; }
+    .ag-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+    .ag-section-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.35); }
+    .ag-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(139,92,246,0.05);
+      border: 1px solid rgba(139,92,246,0.15);
+      border-radius: 10px;
+      padding: 0.6rem 0.75rem;
+      margin-bottom: 0.4rem;
+      gap: 0.5rem;
+      transition: border-color 0.2s;
+    }
+    .ag-item:hover { border-color: rgba(139,92,246,0.35); }
+    .ag-name { font-size: 0.82rem; font-weight: 600; color: #e0d0ff; }
+    .ag-meta { font-size: 0.65rem; color: rgba(255,255,255,0.28); margin-top: 2px; }
+    .ag-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
+    .ag-pwd-btn {
+      background: rgba(139,92,246,0.12);
+      border: 1px solid rgba(139,92,246,0.3);
+      color: #a78bfa;
+      border-radius: 6px;
+      padding: 0.22rem 0.5rem;
+      font-size: 0.68rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ag-pwd-btn:hover { background: rgba(139,92,246,0.25); }
+    .ag-del-btn {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #ef4444;
+      border-radius: 6px;
+      padding: 0.22rem 0.5rem;
+      font-size: 0.68rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ag-del-btn:hover { background: rgba(239,68,68,0.22); }
+    .ag-empty { text-align: center; color: rgba(255,255,255,0.22); font-size: 0.8rem; padding: 1.5rem 0; }
+
+    /* ===== Modal Overlay ===== */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(6px);
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal-card {
+      width: 100%; max-width: 360px;
+      padding: 2rem;
+      display: flex; flex-direction: column; gap: 0.85rem;
+      animation: fadeSlideDown 0.25s ease;
+    }
+    .modal-card h4 { font-size: 1rem; font-weight: 700; color: #f0f0ff; }
+    .modal-card h4 span { color: #a78bfa; }
+    .modal-msg { font-size: 0.75rem; min-height: 1rem; }
+    .modal-msg.err { color: #ef4444; }
+    .modal-msg.ok  { color: #10b981; }
+    .modal-footer { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+    .modal-footer .btn { flex: 1; justify-content: center; }
+  </style>
+
+</head>
+<body class="app-page admin-page">
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <!-- ===== LOGIN SCREEN ===== -->
+  <div id="login-screen" class="fullscreen-overlay">
+    <div class="login-card glass-panel">
+      <div class="login-logo">
+        <span class="brand-icon large">⚡</span>
+        <h1>Skone Remote Support</h1>
+        <p id="login-subtitle">Admin Panel</p>
+      </div>
+
+      <!-- Login Mode Tabs -->
+      <div style="display:flex;gap:0;border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;margin-bottom:1.2rem;">
+        <button id="tab-login-admin" onclick="setLoginMode('admin')"
+          style="flex:1;padding:0.55rem;font-size:0.78rem;font-weight:600;background:rgba(0,212,255,0.15);color:#00d4ff;border:none;cursor:pointer;transition:all 0.2s;border-right:1px solid rgba(255,255,255,0.1);">
+          🔐 Admin
+        </button>
+        <button id="tab-login-agent" onclick="setLoginMode('agent')"
+          style="flex:1;padding:0.55rem;font-size:0.78rem;font-weight:600;background:none;color:rgba(255,255,255,0.4);border:none;cursor:pointer;transition:all 0.2s;">
+          🤝 Agent
+        </button>
+      </div>
+
+      <!-- Admin Login Form -->
+      <form id="login-form" autocomplete="off">
+        <div class="form-group" id="field-admin-password">
+          <label for="admin-password">Admin Password</label>
+          <input type="password" id="admin-password" placeholder="Enter admin password" autocomplete="new-password" />
+        </div>
+        <!-- Agent Login Fields (hidden by default) -->
+        <div class="form-group" id="field-agent-username" style="display:none">
+          <label for="agent-username">Username</label>
+          <input type="text" id="agent-username" placeholder="Enter your username" autocomplete="username" />
+        </div>
+        <div class="form-group" id="field-agent-password" style="display:none">
+          <label for="agent-password">Password</label>
+          <input type="password" id="agent-password" placeholder="Enter your password" autocomplete="current-password" />
+        </div>
+        <div id="login-error" class="error-msg hidden">❌ Incorrect password</div>
+        <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+          <span>🔐</span> Login as Admin
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MAIN ADMIN APP ===== -->
+  <div id="admin-app" class="hidden">
+
+    <!-- Navbar -->
+    <nav class="navbar admin-navbar">
+      <a href="/" class="nav-brand">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-name">Skone Remote Support</span>
+        <span class="admin-badge" id="role-badge">ADMIN</span>
+      </a>
+      <div class="nav-links">
+        <button class="btn btn-ghost btn-sm" id="refresh-sessions-btn">🔄 Refresh</button>
+        <span class="nav-badge" id="admin-status-badge">⚫ Connecting...</span>
+        <button class="btn btn-danger btn-sm" id="admin-logout-btn">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Two-column layout: Sidebar + Main Content -->
+    <div class="admin-layout">
+
+      <!-- Sidebar: Invite + Session List -->
+      <aside class="sidebar glass-panel">
+
+        <!-- Sidebar Tabs -->
+        <div class="sidebar-tabs">
+          <button class="sidebar-tab active" id="tab-sessions" onclick="switchTab('sessions')">📡 Sessions</button>
+          <button class="sidebar-tab" id="tab-agents" onclick="switchTab('agents')">🤝 Agents</button>
+          <button class="sidebar-tab" id="tab-password" onclick="switchTab('password')">🔑 Password</button>
+          <!-- Agent-only: change own password -->
+          <button class="sidebar-tab hidden" id="tab-my-password" onclick="switchTab('my-password')">🔑 My Password</button>
+        </div>
+
+        <!-- ── TAB: Sessions ── -->
+        <div class="sidebar-panel active" id="panel-sessions">
+
+          <!-- Generate Connection Code -->
+          <div class="invite-panel">
+            <h4>🔑 New Support Session</h4>
+            <div class="invite-code-display empty" id="invite-code-display">No code yet</div>
+            <div class="invite-link-row">
+              <span class="invite-link-text" id="invite-link-text">Generate a code to get a link</span>
+              <button class="copy-link-btn" id="copy-link-btn" title="Copy link">📋</button>
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-bottom:0.5rem" id="generate-code-btn">
+              ⚡ Generate Connection Code
+            </button>
+            <div class="invite-expire" id="invite-expire"></div>
+          </div>
+
+          <!-- Active Sessions -->
+          <div class="sidebar-header">
+            <h3>Active Sessions</h3>
+            <span class="session-count" id="session-count">0</span>
+          </div>
+          <div id="sessions-list" class="sessions-list">
+            <div class="no-sessions">
+              <div>📡</div>
+              <span>Waiting for users to connect</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── TAB: Agents ── -->
+        <div class="sidebar-panel" id="panel-agents">
+
+          <div class="ag-form">
+            <h4>🤝 New Support Agent</h4>
+            <input class="ag-input" type="text" id="ag-username" placeholder="Username (min 3 chars)" autocomplete="off" />
+            <input class="ag-input" type="password" id="ag-password" placeholder="Password (min 4 chars)" autocomplete="new-password" />
+            <div class="ag-msg" id="ag-msg"></div>
+            <button class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#8b5cf6,#6d28d9)" id="ag-create-btn">➕ Create Agent</button>
+          </div>
+
+          <div class="ag-list-header">
+            <span class="ag-section-title">Active Agents</span>
+            <button class="btn btn-ghost btn-sm" id="ag-refresh-btn">🔄</button>
+          </div>
+          <div id="ag-list"><div class="ag-empty">No agents yet</div></div>
+
+        </div>
+
+        <!-- ── TAB: Password ── -->
+        <div class="sidebar-panel" id="panel-password">
+
+          <div class="cp-form">
+            <h4>🔒 Change Admin Password</h4>
+            <input class="um-input" type="password" id="cp-current" placeholder="Current password" autocomplete="current-password" />
+            <input class="um-input" type="password" id="cp-new" placeholder="New password (min 4 chars)" autocomplete="new-password" />
+            <input class="um-input" type="password" id="cp-confirm" placeholder="Confirm new password" autocomplete="new-password" />
+            <div class="cp-msg" id="cp-msg"></div>
+            <button class="btn btn-primary" style="width:100%" id="cp-save-btn">💾 Save New Password</button>
+          </div>
+
+          <div style="margin-top:1.5rem;padding:0.9rem;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:10px;">
+            <p style="font-size:0.72rem;color:rgba(245,158,11,0.85);line-height:1.6;">
+              ⚠️ <strong>Note:</strong> Password is stored in memory only. Server restart will reset it to the hardcoded value in <code>server.js</code>.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- ── TAB: My Password (agent only) ── -->
+        <div class="sidebar-panel" id="panel-my-password">
+          <div class="cp-form">
+            <h4>🔒 Change My Password</h4>
+            <input class="um-input" type="password" id="my-cp-new" placeholder="New password (min 4 chars)" autocomplete="new-password" />
+            <input class="um-input" type="password" id="my-cp-confirm" placeholder="Confirm new password" autocomplete="new-password" />
+            <div class="cp-msg" id="my-cp-msg"></div>
+            <button class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#8b5cf6,#6d28d9)" id="my-cp-save-btn">💾 Save New Password</button>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- Main: Viewer -->
+      <main class="viewer-area">
+
+        <!-- Empty state -->
+        <div class="viewer-empty" id="viewer-empty">
+          <div class="empty-icon">🖥️</div>
+          <h2>No Session Selected</h2>
+          <p>Generate a connection code, send it to the user, then click a session in the sidebar to view their screen</p>
+        </div>
+
+        <!-- Viewer -->
+        <div class="viewer-container hidden" id="viewer-container">
+          <!-- Toolbar -->
+          <div class="viewer-toolbar">
+            <div class="toolbar-left">
+              <span class="toolbar-session" id="toolbar-session-id">Session: ------</span>
+              <div class="status-dot active small"></div>
+              <span id="toolbar-status">Connected</span>
+            </div>
+            <div class="toolbar-right">
+              <span class="fps-badge" id="fps-badge">-- fps</span>
+              <button class="tool-btn" id="fullscreen-btn" title="Fullscreen">⛶</button>
+              <button class="tool-btn active" id="mouse-control-btn" title="Toggle Mouse Control">🖱️</button>
+              <button class="tool-btn active" id="keyboard-control-btn" title="Toggle Keyboard Control">⌨️</button>
+              <button class="btn btn-danger btn-sm" id="viewer-disconnect-btn">Disconnect</button>
+            </div>
+          </div>
+
+          <!-- Canvas screen -->
+          <div class="canvas-wrapper" id="canvas-wrapper">
+            <canvas id="screen-canvas"></canvas>
+            <div class="canvas-overlay" id="canvas-overlay">
+              <div class="overlay-msg" id="overlay-msg">
+                <div class="spin">🔄</div>
+                <span>Connecting to agent...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Bar -->
+          <div class="status-bar">
+            <span id="status-bar-coords">Mouse: (0, 0)</span>
+            <span id="status-bar-resolution">Resolution: --x--</span>
+            <span id="status-bar-latency">Latency: -- ms</span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ===== AGENT PASSWORD MODAL ===== -->
+  <div id="agent-pwd-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-panel">
+      <h4>Change Password &mdash; <span id="modal-agent-name"></span></h4>
+      <input class="ag-input" type="password" id="modal-agent-pwd" placeholder="New password (min 4 chars)" autocomplete="new-password" />
+      <input class="ag-input" type="password" id="modal-agent-confirm" placeholder="Confirm new password" autocomplete="new-password" />
+      <div class="modal-msg" id="modal-msg"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="modal-cancel-btn">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="modal-save-btn" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">💾 Save Password</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>
