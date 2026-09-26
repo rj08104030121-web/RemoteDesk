@@ -68,6 +68,18 @@ node server.js
 The server starts at **http://localhost:3000**. It refuses to start if
 `ADMIN_PASSWORD` is not set. The password is never printed to the console.
 
+### Deploy to Render
+
+1. In Render, choose **New > Blueprint** and connect the
+   `rj08104030121-web/RemoteDesk` GitHub repository.
+2. Render reads `render.yaml`, creates the web service, and generates a
+   private `ADMIN_PASSWORD` value for it.
+3. When deployment finishes, open the service's `onrender.com` URL and log in
+   with the `ADMIN_PASSWORD` shown in the service's environment settings.
+
+The free web service may sleep when idle. Sessions and agent accounts are
+stored in memory, so they are cleared whenever the service restarts.
+
 ### Step 3: Run the Agent (on USER's computer)
 
 In a separate terminal:

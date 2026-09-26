@@ -173,7 +173,7 @@ app.get('/download/:code', (req, res) => {
 
   // Build the server's public URL (use host header or configured PUBLIC_URL)
   const publicUrl = process.env.PUBLIC_URL ||
-    `http://${req.headers.host}`;
+    `${req.headers['x-forwarded-proto'] || req.protocol}://${req.headers.host}`;
 
   // Generate a BAT script that:
   // 1. Downloads Node.js portable (if not present) or uses system node
