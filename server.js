@@ -27,8 +27,8 @@ const pendingInvites = {};
 // sessions[sessionId] = { agentSocketId, adminSocketId, status, code, createdAt }
 const sessions = {};
 
-let ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-if (!ADMIN_PASSWORD) {
+let ADMIN_PASSWORD = process.env.ADMIN_PASSWORD="Akku@123";
+if (!Akku@123) {
   console.error('Set the ADMIN_PASSWORD environment variable before starting the server.');
   process.exit(1);
 }
